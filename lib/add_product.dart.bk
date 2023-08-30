@@ -1,0 +1,137 @@
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'database_helper.dart';
+
+class Product {
+  final String? name;
+  final String? description;
+  final double price;
+  final double quantity;
+  final String? photo;
+  final String? shop;
+
+  Product({
+    this.name,
+    this.description,
+    required this.price,
+    required this.quantity,
+    this.photo,
+    this.shop,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'description': description,
+      'price': price,
+      'quantity': quantity,
+      'photo': photo,
+      'shop': shop,
+    };
+  }
+}
+
+class AddProductScreen extends StatefulWidget {
+  @override
+  _AddProductScreenState createState() => _AddProductScreenState();
+}
+
+class _AddProductScreenState extends State<AddProductScreen> {
+  String? productName;
+  String? productDescription;
+  String? selectedPhoto;
+  List<String> priceDigits = ['0', '0', '0', '0']; // 千, 百, 十, 個
+  String? quantityDigit = '0';
+  String? selectedShop;
+
+  double get price {
+    int priceValue = int.parse(priceDigits.join());
+    return priceValue.toDouble();
+  }
+
+  double get quantity {
+    return double.parse(quantityDigit ?? '0');
+  }
+
+  final picker = ImagePicker();
+
+  Future<void> _addProductToDb() async {
+    final product = Product(
+      name: productName,
+      description: productDescription,
+      price: price,
+      quantity: quantity,
+      photo: selectedPhoto,
+      shop: selectedShop,
+    );
+
+    final db = DatabaseHelper.instance;
+    final result = await db.insert(product.toMap());
+
+    if (result > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('新增商品成功!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('新增商品失敗!')),
+      );
+    }
+  }
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.photo_camera),
+            title: Text('拍照'),
+            onTap: () async {
+              final pickedFile = await picker.getImage(source: ImageSource.camera);
+              if (pickedFile != null) {
+                setState(() {
+                  selectedPhoto = pickedFile.path;
+                });
+              }
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.photo_library),
+            title: Text('從相片庫選擇'),
+            onTap: () async {
+              final pickedFile = await picker.getImage(source: ImageSource.gallery);
+              if (pickedFile != null) {
+                setState(() {
+                  selectedPhoto = pickedFile.path;
+                });
+              }
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color.fromRGBO(0xcf, 0xf0, 0x91, 1.0),
+      appBar: AppBar(
+        title: Text('新增商品'),
+        backgroundColor: Color.fromRGBO(0x79, 0xbd, 0x9a, 1.0),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            // ... [The rest of your code remains unchanged]
+          ],
+        ),
+      ),
+    );
+  }
+}

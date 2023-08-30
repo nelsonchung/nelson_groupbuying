@@ -72,7 +72,7 @@ class HomeScreen extends StatelessWidget {
         decoration: const BoxDecoration(
           color: Color.fromRGBO(0xcf, 0xf0, 0x91, 1.0), // #FFE3AB 的 RGB 比例
           image: DecorationImage(
-            image: AssetImage('assets/background.png'),
+            image: AssetImage('assets/background.jepg'),
             fit: BoxFit.cover,
           ),
         ),

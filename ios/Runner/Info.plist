@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>允許此功能，讓你可以選擇商品相片</string>
+	<key>NSCameraUsageDescription</key>
+	<string>允許此功能，讓你可以替商品拍照</string>
 </dict>
 </plist>

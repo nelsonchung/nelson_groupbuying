@@ -1,23 +1,35 @@
-/*
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * Author: Nelson Chung
- * Creation Date: August 28, 2023
- */
-
-
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'database_helper.dart';
+
+class Product {
+  final String? name;
+  final String? description;
+  final double price;
+  final double quantity;
+  final String? photo;
+  final String? shop;
+
+  Product({
+    this.name,
+    this.description,
+    required this.price,
+    required this.quantity,
+    this.photo,
+    this.shop,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'description': description,
+      'price': price,
+      'quantity': quantity,
+      'photo': photo,
+      'shop': shop,
+    };
+  }
+}
 
 class AddProductScreen extends StatefulWidget {
   @override
@@ -28,14 +40,89 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String? productName;
   String? productDescription;
   String? selectedPhoto;
-  List<String> price = ['0', '0', '0', '0'];  // 千, 百, 十, 個
-  String? quantity;
+  List<String> priceDigits = ['0', '0', '0', '0']; // 千, 百, 十, 個
+  String? quantityDigit = '0';
+  String? selectedShop;
 
-  @override
+  double get price {
+    int priceValue = int.parse(priceDigits.join());
+    return priceValue.toDouble();
+  }
+
+  double get quantity {
+    return double.parse(quantityDigit ?? '0');
+  }
+
+  final picker = ImagePicker();
+
+  Future<void> _addProductToDb() async {
+    final product = Product(
+      name: productName,
+      description: productDescription,
+      price: price,
+      quantity: quantity,
+      photo: selectedPhoto,
+      shop: selectedShop,
+    );
+
+    final db = DatabaseHelper.instance;
+    final result = await db.insert(product.toMap());
+
+    if (result > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('新增商品成功!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('新增商品失敗!')),
+      );
+    }
+  }
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.photo_camera),
+            title: Text('拍照'),
+            onTap: () async {
+              final pickedFile = await picker.getImage(source: ImageSource.camera);
+              if (pickedFile != null) {
+                setState(() {
+                  selectedPhoto = pickedFile.path;
+                });
+              }
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.photo_library),
+            title: Text('從相片庫選擇'),
+            onTap: () async {
+              final pickedFile = await picker.getImage(source: ImageSource.gallery);
+              if (pickedFile != null) {
+                setState(() {
+                  selectedPhoto = pickedFile.path;
+                });
+              }
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+@override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromRGBO(0xcf, 0xf0, 0x91, 1.0),
       appBar: AppBar(
         title: Text('新增商品'),
+        backgroundColor: Color.fromRGBO(0x79, 0xbd, 0x9a, 1.0),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -49,10 +136,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),            
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implement image picker functionality
-              },
-              child: Text('選擇照片'),
+                onPressed: _pickImage,
+                child: Text('選擇照片', style: TextStyle(fontSize: 20.0)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromRGBO(0x98, 0xdb, 0x98, 1.0),
+                ),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -64,12 +152,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text('價錢: ${price.join()}'),  // 顯示價錢
+              child: Text('價錢: ${priceDigits.join()}'),  // 顯示價錢
+
             ),
             Row(
               children: List.generate(4, (index) {
                 return DropdownButton<String>(
-                  value: price[index],
+                  value: priceDigits[index],
                   items: List.generate(10, (number) {
                     return DropdownMenuItem(
                       value: number.toString(),
@@ -78,7 +167,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   }),
                   onChanged: (newValue) {
                     setState(() {
-                      price[index] = newValue!;
+                      priceDigits[index] = newValue!;
                     });
                   },
                 );
@@ -90,7 +179,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               child: Text('數量: $quantity'),  // 顯示數量
             ),
             DropdownButton<String>(
-              value: quantity,
+              value: quantityDigit,
               items: List.generate(10, (number) {
                 return DropdownMenuItem(
                   value: number.toString(),
@@ -99,7 +188,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               }),
               onChanged: (newValue) {
                 setState(() {
-                  quantity = newValue!;
+                  quantityDigit = newValue!;
                 });
               },
             ),
