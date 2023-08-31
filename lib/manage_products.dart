@@ -15,15 +15,64 @@
  * Author: Nelson Chung
  * Creation Date: August 28, 2023
  */
-
-
+ 
 import 'package:flutter/material.dart';
+import 'database_helper.dart';
+import 'dart:io';
 
-class ManageProductsScreen extends StatelessWidget {
+class ManageProductsScreen extends StatefulWidget {
+  @override
+  _ManageProductsScreenState createState() => _ManageProductsScreenState();
+}
+
+class _ManageProductsScreenState extends State<ManageProductsScreen> {
+  late List<Map<String, dynamic>> products;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProducts();
+  }
+
+  _fetchProducts() async {
+    final productsList = await DatabaseHelper.instance.queryAllRows();
+    setState(() {
+      products = productsList;
+    });
+  }
+
+  _deleteProduct(int id, int index) async {
+    await DatabaseHelper.instance.delete(id);
+    setState(() {
+      products.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('這裡是管理商品的頁面'),
+    return ListView.builder(
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        return Card(
+//
+          child: ListTile(
+            leading: (products[index][DatabaseHelper.columnPhoto] != null)
+                ? Image.file(File(products[index][DatabaseHelper.columnPhoto]))
+                : Icon(Icons.image_not_supported),
+            title: Text(products[index][DatabaseHelper.columnName] ?? ''),
+            subtitle: Text(
+              '描述: ${products[index][DatabaseHelper.columnDescription] ?? ''}\n'
+              '價格: ${products[index][DatabaseHelper.columnPrice] ?? ''}\n'
+              '數量: ${products[index][DatabaseHelper.columnQuantity] ?? ''}'
+            ),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () => _deleteProduct(products[index][DatabaseHelper.columnId], index),
+            ),
+          ),
+//
+        );
+      },
     );
   }
 }
