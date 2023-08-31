@@ -26,7 +26,7 @@ class ManageProductsScreen extends StatefulWidget {
 }
 
 class _ManageProductsScreenState extends State<ManageProductsScreen> {
-  late List<Map<String, dynamic>> products;
+  late List<Map<String, dynamic>> products = [];
 
   @override
   void initState() {
@@ -50,29 +50,51 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        return Card(
-//
-          child: ListTile(
-            leading: (products[index][DatabaseHelper.columnPhoto] != null)
-                ? Image.file(File(products[index][DatabaseHelper.columnPhoto]))
-                : Icon(Icons.image_not_supported),
-            title: Text(products[index][DatabaseHelper.columnName] ?? ''),
-            subtitle: Text(
-              '描述: ${products[index][DatabaseHelper.columnDescription] ?? ''}\n'
-              '價格: ${products[index][DatabaseHelper.columnPrice] ?? ''}\n'
-              '數量: ${products[index][DatabaseHelper.columnQuantity] ?? ''}'
+    return Scaffold(
+      backgroundColor: Color.fromRGBO(0xcf, 0xf0, 0x91, 1.0),
+      appBar: AppBar(
+        title: Text('管理商品'),
+        backgroundColor: Color.fromRGBO(0x79, 0xbd, 0x9a, 1.0),
+      ),
+      body: ListView.builder(
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          return Card(
+            color: Color.fromRGBO(0xcf, 0xf0, 0x91, 0.7),
+            margin: EdgeInsets.all(10),
+            child: ListTile(
+              leading: (products[index][DatabaseHelper.columnPhoto] != null && 
+                        File(products[index][DatabaseHelper.columnPhoto]!).existsSync())
+                  ? ClipOval(
+                      child: SizedBox(
+                        width: 50.0,
+                        height: 50.0,
+                        child: Image.file(File(products[index][DatabaseHelper.columnPhoto]!)),
+                      ),
+                    )
+                  : Icon(Icons.image_not_supported, color: Color.fromRGBO(0x79, 0xbd, 0x9a, 1.0)),
+              title: Text(
+                products[index][DatabaseHelper.columnName] ?? '',
+                style: TextStyle(
+                  color: Color.fromRGBO(0x79, 0xbd, 0x9a, 1.0),
+                ),
+              ),
+              subtitle: Text(
+                '描述: ${products[index][DatabaseHelper.columnDescription] ?? ''}\n'
+                '價格: ${products[index][DatabaseHelper.columnPrice] ?? ''}\n'
+                '數量: ${products[index][DatabaseHelper.columnQuantity] ?? ''}',
+                style: TextStyle(
+                  color: Colors.black87,
+                ),
+              ),
+              trailing: IconButton(
+                icon: Icon(Icons.delete, color: Color.fromRGBO(0x79, 0xbd, 0x9a, 1.0)),
+                onPressed: () => _deleteProduct(products[index][DatabaseHelper.columnId], index),
+              ),
             ),
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () => _deleteProduct(products[index][DatabaseHelper.columnId], index),
-            ),
-          ),
-//
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
