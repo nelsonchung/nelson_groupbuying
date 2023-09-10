@@ -114,7 +114,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             leading: Icon(Icons.photo_camera),
             title: Text('拍照'),
             onTap: () async {
-              final pickedFile = await picker.getImage(source: ImageSource.camera);
+              final pickedFile = await picker.pickImage(source: ImageSource.camera);
               if (pickedFile != null) {
                 setState(() {
                   selectedPhoto = pickedFile.path;
@@ -127,7 +127,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             leading: Icon(Icons.photo_library),
             title: Text('從相片庫選擇'),
             onTap: () async {
-              final pickedFile = await picker.getImage(source: ImageSource.gallery);
+              final pickedFile = await picker.pickImage(source: ImageSource.gallery);
               if (pickedFile != null) {
                 setState(() {
                   selectedPhoto = pickedFile.path;
