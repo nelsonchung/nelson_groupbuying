@@ -21,9 +21,13 @@ import 'customer_order.dart';
 import 'boss_mode.dart';
 import 'dart:io';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart'; // 新增這行導入
+import 'package:path/path.dart';
+import 'login_google.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -68,72 +72,102 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Color.fromRGBO(0xcf, 0xf0, 0x91, 1.0), // #FFE3AB 的 RGB 比例
-          image: DecorationImage(
-            image: AssetImage('assets/background.jepg'),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 添加背景图片
+          Image.asset(
+            'assets/background.jpeg',
             fit: BoxFit.cover,
           ),
-        ),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CustomerOrderScreen(),
+          Container(
+            color: Colors.transparent, // 使容器透明以显示背景图片
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'KingsChun團購網',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // 添加文本颜色以与背景图片区分开
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(0x98, 0xdb, 0x98, 1.0), // #FFE300 的 RGB 比例
-                    minimumSize: const Size(320, 88),
-                  ),
-                  child: const Text(
-                    '顧客模式',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const BossModeScreen(),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CustomerOrderScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(0x98, 0xdb, 0x98, 1.0),
+                        minimumSize: const Size(320, 88),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(0x98, 0xdb, 0x98, 1.0), // #FFE300 的 RGB 比例
-                    minimumSize: const Size(320, 88),
-                  ),
-                  child: const Text(
-                    '老闆模式',
-                    style: TextStyle(color: Colors.black),
-                  ),
+                      child: const Text(
+                        '顧客模式',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const BossModeScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(0x98, 0xdb, 0x98, 1.0),
+                        minimumSize: const Size(320, 88),
+                      ),
+                      child: const Text(
+                        '老闆模式',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await deleteDatabaseFile(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      child: const Text('清除資料庫'),
+                    ),
+                    const SizedBox(height: 16),
+                    // 新增按鈕已進入LoginGooglePage
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginGooglePage(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(0x98, 0xdb, 0x98, 1.0),
+                        minimumSize: const Size(320, 88),
+                      ),
+                      child: const Text('使用者登入'),
+                    ),                    
+                  ],
                 ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    await deleteDatabaseFile(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
-                  child: const Text('清除資料庫'),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
